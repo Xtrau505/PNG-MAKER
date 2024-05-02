@@ -2,7 +2,9 @@
 
 ## Overview
 
-This repository contains a Node.js script for generating PNG files with customizable dimensions, bit depths, and color types. The script utilizes libraries such as `crc`, `zlib`, and `fs` for PNG generation.
+This repository contains a Node.js script for generating PNG files with customizable dimensions, bit depths, and color types. 
+
+The script utilizes libraries such as `crc`, `zlib`, and `fs` for PNG generation.
 
 ## Setup
 
@@ -34,6 +36,7 @@ CREATEPNG(
 ## Additional Information
 
 Check the provided links in the code for detailed information about PNG chunks and specifications.
+
 Time statistics for coding and PNG generation are included in the code comments.
 
 ## Note
