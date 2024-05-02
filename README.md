@@ -25,11 +25,11 @@ CREATEPNG(
 );
 ```
 
-`OUTFILE`: Specify the name of the output file without the extension. The script will automatically add the necessary details to the file name.
-`_WIDTH` and `_HEIGHT`: Set the dimensions of the image.
-`_BITDEPTH`: Choose the bit depth for the image (1, 2, 4, 8, or 16).
-`_COLORTYPE`: Select the color type for the image (0, 2, 3, 4, or 6).
-`__IGNORESIZELIM` (optional): Set to true to ignore size limit checks, this is __NOT__ recommended
+- `OUTFILE`: Specify the name of the output file without the extension. The script will automatically add the necessary details to the file name.
+- `_WIDTH` and `_HEIGHT`: Set the dimensions of the image.
+- `_BITDEPTH`: Choose the bit depth for the image (1, 2, 4, 8, or 16).
+- `_COLORTYPE`: Select the color type for the image (0, 2, 3, 4, or 6).
+- `__IGNORESIZELIM` (optional): Set to true to ignore size limit checks, this is __NOT__ recommended
 
 ## Additional Information
 
