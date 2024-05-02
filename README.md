@@ -40,6 +40,7 @@ Time statistics for coding and PNG generation are included in the code comments.
 
 Ensure you have sufficient memory allocated to Node.js, especially if generating large PNG files.
 - Adjust the maxHeapSize variable in the script if needed.
+
 Modify the code as per your requirements, such as adding support for additional color types or customizing chunk data.
 
 ## Examples
