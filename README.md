@@ -55,4 +55,4 @@ Feel free to explore and modify the script to suit your PNG generation needs. Ha
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE.md) - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the [MIT License](LICENSE) - see the [LICENSE](LICENSE) file for details.
