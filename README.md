@@ -52,3 +52,7 @@ CREATEPNG("MyImage", 1024, 1024, 8, 2); // Generates an 8-bit depth, truecolor P
 CREATEPNG("LargeImage", 2048, 2048, 16, 4, true); // Generates a 16-bit depth, grayscale with alpha PNG ignoring size limits.
 ```
 Feel free to explore and modify the script to suit your PNG generation needs. Happy coding!
+
+## License
+
+This project is licensed under the [MIT License](LICENSE.md) - see the [LICENSE.md](LICENSE.md) file for details.
