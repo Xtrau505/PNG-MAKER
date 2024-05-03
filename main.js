@@ -6,6 +6,12 @@ v8.setFlagsFromString(`--max-old-space-size=${maxHeapSize}`);
 const fs = require("node:fs");
 const crc = require("crc");
 const zlib = require("zlib");
+const { time } = require("console");
+
+function delay(time) {
+  return new Promise((resolve) => setTimeout(resolve, time));
+}
+
 /*
 USEFUL LINKS & INFO:
   https://www.w3.org/TR/2003/REC-PNG-20031110/
@@ -70,7 +76,26 @@ function createChunkFromDictionary(dictionary) {
   return chunk;
 }
 
-function CREATEPNG(
+async function TimeUpdatesInterval(
+  interval = 1000,
+  timevariable = "",
+  endcheck = false,
+) {
+  if (endcheck) {
+    return;
+  }
+
+  console.timeLog(timevariable); // Log the time
+
+  setTimeout(() => {
+    TimeUpdatesInterval(interval, timevariable, endcheck); // Call the function recursively after the interval
+  }, interval);
+}
+
+// Usage example:
+//TimeUpdatesInterval(5000, "TimeVariableName", false); // Log time updates every 5 seconds
+
+async function CREATEPNG(
   OUTFILE = "OUTFILEBECAUSEYOUDIDNTPROVIDEONE",
   _WIDTH = 256,
   _HEIGHT = 256,
@@ -142,6 +167,14 @@ function CREATEPNG(
       );
     }
 
+    if (_BITDEPTH == 1 || _BITDEPTH == 2) {
+      console.warn(
+        "Bitdepths 1 and 2 are currently unsupported and may cause issues.\n\nProceed with caution, and dont expect things to work correctly\nI'm plan to fix them, but they are low on the priority list due to them being practically useless.\n\n",
+      );
+      ___CONSOLEBD12WAITTIMEVAR = console.time("___CONSOLEWAITTIME");
+      delay(10000);
+    }
+
     if (
       _WIDTH * _HEIGHT * BYTELENGTH > Math.pow(2, 32) - 1 &&
       __IGNORESIZELIM == false
@@ -150,6 +183,17 @@ function CREATEPNG(
         `Your width and height values are over ${Math.pow(2, 32) - 1} ((2 ^ 32) - 1),\n\nwhich is the highest number NodeJS can compute.\n\nYour number is ${Math.abs(Math.pow(2, 32) - 1 - _WIDTH * _HEIGHT * BYTELENGTH)} over the limit.\n\nPlease shorten your width and height before you make your PNG file again.\n\n`,
       );
     }
+  }
+
+  console.log(`PIXELS: ${TESTihdrValuesIni[0] * TESTihdrValuesIni[1]}`);
+  if (_BITDEPTH >= 4) {
+    console.log(
+      `BYTES: ${TESTihdrValuesIni[0] * TESTihdrValuesIni[1] * BYTELENGTH * (_BITDEPTH / 4)}`,
+    );
+  } else {
+    console.log(
+      `BYTES: ${TESTihdrValuesIni[0] * TESTihdrValuesIni[1] * BYTELENGTH}`,
+    );
   }
 
   TESTihdrValues = TESTihdrValuesIni;
@@ -189,48 +233,60 @@ function CREATEPNG(
   };
 
   sRGBTEST.CRC = COMPUTECRC(createChunkFromDictionary(sRGBTEST));
-  console.time("IDAT GENERATION");
+  console.time("IDAT GENERATION", "GENERATING COLORS");
 
-  if (_BITDEPTH == 1) {
-    var possibleColors = ["00", "01"];
-  } else if (_BITDEPTH == 2) {
-    var possibleColors = ["00", "01", "02", "03"];
-  } else {
-    var possibleColors = generateHexDigitsBitDepth(_BITDEPTH);
-  }
-  console.log(possibleColors);
-  console.timeLog("IDAT GENERATION");
+  possibleColors = generateHexDigitsBitDepth(_BITDEPTH);
   //console.log(possibleColors);
+  console.timeLog("IDAT GENERATION", "GENERATING DATA");
+  console.log(possibleColors);
   //possibleColors = ["aa", "bb", "cc", "dd", "ee", "ff"];
-  var TESTidatValuesIni = Buffer.alloc(0); // Initialize an empty buffer
-
-  for (
-    let i = 0;
-    i < TESTihdrValuesIni[0] * TESTihdrValuesIni[1] * BYTELENGTH;
-    i++
-  ) {
-    if (i % (TESTihdrValuesIni[0] * BYTELENGTH) === 0) {
+  var TESTidatValuesIni = Buffer.allocUnsafe(0); // Initialize an empty buffer
+  var CURRENTLine = 1;
+  if (_BITDEPTH == 1) {
+    var LINEWidth = TESTihdrValuesIni[0] * BYTELENGTH * 16;
+  } else if (_BITDEPTH == 2) {
+    var LINEWidth = (TESTihdrValuesIni[0] * BYTELENGTH) / 2;
+  } else {
+    var LINEWidth = TESTihdrValuesIni[0] * BYTELENGTH;
+  }
+  var CURRENTLineBytes = "";
+  if (_BITDEPTH == 1 || _BITDEPTH == 2) {
+    var BYTEPAD = "00";
+  } else {
+    var BYTEPAD = "00";
+  }
+  var IDATENDCHECK = false;
+  for (let i = 0; i < TESTihdrValuesIni[1] * LINEWidth; i++) {
+    //TimeUpdatesInterval(1000000, "IDAT GENERATION", IDATENDCHECK)
+    if (i % LINEWidth === 0) {
       TESTidatValuesIni = Buffer.concat([
         TESTidatValuesIni,
-        Buffer.from("00", "hex"),
+        Buffer.from(BYTEPAD, "hex"),
       ]);
+      //console.clear()
+      //console.log(`LINE #${CURRENTLine}`)
+      CURRENTLine++;
     }
 
     let RANDOMCOLOR =
       possibleColors[Math.floor(Math.random() * possibleColors.length)];
-
-    try {
-      TESTidatValuesIni = Buffer.concat([
-        TESTidatValuesIni,
-        Buffer.from(RANDOMCOLOR, "hex"),
-      ]);
-    } catch (error) {
-      console.error(error);
-      break;
+    CURRENTLineBytes += RANDOMCOLOR;
+    if (CURRENTLineBytes.length == LINEWidth) {
+      try {
+        TESTidatValuesIni = Buffer.concat([
+          TESTidatValuesIni,
+          Buffer.from(CURRENTLineBytes, "hex"),
+        ]);
+        CURRENTLineBytes = "";
+      } catch (error) {
+        console.error(error);
+        break;
+      }
     }
   }
+  IDATENDCHECK = true;
 
-  console.timeLog("IDAT GENERATION");
+  console.timeLog("IDAT GENERATION", "DATA JOINED");
 
   /*TESTidatValues = [];
     let VALUE = [];
@@ -241,34 +297,40 @@ function CREATEPNG(
   var TESTidatValues = TESTidatValuesIni;
   //console.log("__TESTODAT__", TESTidatValuesIni);
 
-  idatTEST = {
-    Length: "",
-    Type: "49444154",
-    Data: TESTidatValuesIni,
-  };
-  TESTidatValuesIni = null;
-  //console.log(idatTEST.Data);
-  idatTEST.Data = zlib.deflateSync(idatTEST.Data).toString("hex");
-  //idatTEST.Data = zlib.deflate;
-  idatTEST.Length = TOHEX4B(idatTEST.Data.length / 2);
-  idatTEST.CRC = crc
-    .crc32(
-      Buffer.concat([
-        Buffer.from(idatTEST.Type, "hex"),
-        Buffer.from(idatTEST.Data, "hex"),
-      ]),
-    )
-    .toString(16)
-    .padStart(8, "0");
+  idatTESTType = Buffer.from("49444154", "hex");
+  if (_BITDEPTH > 0) {
+    idatTESTData = zlib.deflateSync(TESTidatValuesIni);
+  } else {
+    idatTESTData = TESTidatValuesIni;
+  }
+  idatTESTLength = Buffer.from(TOHEX4B(idatTESTData.length), "hex");
+  idatTESTCRC = Buffer.from(
+    crc
+      .crc32(
+        Buffer.concat([
+          Buffer.from(idatTESTType, "hex"),
+          Buffer.from(idatTESTData, "hex"),
+        ]),
+      )
+      .toString(16)
+      .padStart(8, "0"),
+    "hex",
+  );
+  idatTEST = Buffer.concat([
+    idatTESTLength,
+    idatTESTType,
+    idatTESTData,
+    idatTESTCRC,
+  ]);
 
   //idatTEST.CRC = COMPUTECRC(createChunkFromDictionary(TESTidatValues))
-  console.timeEnd("IDAT GENERATION");
-  iendTEST = {
-    Length: "00000000",
-    Type: "49454e44",
-    Data: "",
-    CRC: "ae426082",
-  };
+  console.timeEnd("IDAT GENERATION", "FINISHED");
+  iendTEST = Buffer.concat([
+    Buffer.from("00000000", "hex"),
+    Buffer.from("49454e44", "hex"),
+    Buffer.from("", "hex"),
+    Buffer.from("ae426082", "hex"),
+  ]);
 
   //iendTEST.Length = TOHEX4B(IEND.length)
   //iendTEST.CRC = COMPUTECRC(createChunkFromDictionary(iendTEST))
@@ -277,17 +339,17 @@ function CREATEPNG(
   //console.log(idatTEST);
   //console.log(iendTEST);
 
-  allChunksTEST = {
-    Header: headerTEST,
-    IHDR: createChunkFromDictionary(ihdrTEST),
-    IDAT: createChunkFromDictionary(idatTEST),
-    IEND: createChunkFromDictionary(iendTEST),
-  };
+  allChunksTEST = Buffer.concat([
+    Buffer.from(headerTEST, "hex"),
+    Buffer.from(createChunkFromDictionary(ihdrTEST), "hex"),
+    idatTEST,
+    iendTEST,
+  ]);
 
   //console.log(allChunksTEST);
   //console.log(createChunkFromDictionary(allChunksTEST));
 
-  DATA = Buffer.from(createChunkFromDictionary(allChunksTEST), "hex");
+  DATA = Buffer.from(allChunksTEST, "hex");
 
   //console.log(DATA);
 
@@ -303,4 +365,4 @@ function CREATEPNG(
   //fs.writeFileSync(`${OUTFILE}.png`, DATA, "binary");
 }
 
-CREATEPNG("OUT", Math.pow(2, 11), Math.pow(2, 11), 2, 0, true);
+CREATEPNG("OUT", Math.pow(2, 4), Math.pow(2, 4), 8, 2, true);
