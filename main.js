@@ -27,10 +27,6 @@ USEFUL LINKS & INFO:
   https://www.w3.org/TR/PNG-Chunks/#tEXt
   https://www.w3.org/TR/PNG-Chunks/#zTXt
   https://www.nayuki.io/page/png-file-chunk-inspector
-
-TIME STATISTICS:
-  TIME TO CODE: ~24 HOURS
-  TIME TO MAKE RGB 2048x2048 PNG: 11 SECONDS
 */
 function COMPUTECRC(data) {
   const checksum = crc
