@@ -7,8 +7,6 @@ v8.setFlagsFromString(`--max-old-space-size=${maxHeapSize}`);
 const fs = require("node:fs");
 const crc = require("crc");
 const zlib = require("zlib");
-const { time, log } = require("console");
-
 
 function delay(time) {
   return new Promise((resolve) => setTimeout(resolve, time));
