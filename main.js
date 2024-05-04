@@ -1,12 +1,14 @@
+console.clear()
 const maxHeapSize = 12 * 1024 * 1024 * 1024; // 12 GB in bytes
-console.log(maxHeapSize);
+//console.log(maxHeapSize);
 const v8 = require("v8");
 v8.setFlagsFromString(`--max-old-space-size=${maxHeapSize}`);
 
 const fs = require("node:fs");
 const crc = require("crc");
 const zlib = require("zlib");
-const { time } = require("console");
+const { time, log } = require("console");
+
 
 function delay(time) {
   return new Promise((resolve) => setTimeout(resolve, time));
@@ -181,16 +183,21 @@ async function CREATEPNG(
     }
   }
 
-  console.log(`PIXELS: ${TESTihdrValuesIni[0] * TESTihdrValuesIni[1]}`);
-  if (_BITDEPTH >= 4) {
-    console.log(
-      `BYTES: ${TESTihdrValuesIni[0] * TESTihdrValuesIni[1] * BYTELENGTH * (_BITDEPTH / 4)}`,
-    );
-  } else {
-    console.log(
-      `BYTES: ${TESTihdrValuesIni[0] * TESTihdrValuesIni[1] * BYTELENGTH}`,
-    );
+  console.log(`PIXELS: ${TESTihdrValuesIni[0] * TESTihdrValuesIni[1]}\n`);
+  console.log(`BITS: ${TESTihdrValuesIni[0] * TESTihdrValuesIni[1] * BYTELENGTH * _BITDEPTH}`);
+  if (((TESTihdrValuesIni[0] * TESTihdrValuesIni[1] * BYTELENGTH * _BITDEPTH) / 8) > Math.pow(2, 18)) {
+    console.log(`BYTES: ${(TESTihdrValuesIni[0] * TESTihdrValuesIni[1] * BYTELENGTH * _BITDEPTH) / 8}`);
+    if (((TESTihdrValuesIni[0] * TESTihdrValuesIni[1] * BYTELENGTH * _BITDEPTH) / 8e+3) > Math.pow(2, 18)) {
+      console.log(`KILOBYTES: ${(TESTihdrValuesIni[0] * TESTihdrValuesIni[1] * BYTELENGTH * _BITDEPTH) / 8e+3}`);
+      if (((TESTihdrValuesIni[0] * TESTihdrValuesIni[1] * BYTELENGTH * _BITDEPTH) / 8e+6) > Math.pow(2, 18)) {
+        console.log(`MEGABYTES: ${(TESTihdrValuesIni[0] * TESTihdrValuesIni[1] * BYTELENGTH * _BITDEPTH) / 8e+6}`);
+        if (((TESTihdrValuesIni[0] * TESTihdrValuesIni[1] * BYTELENGTH * _BITDEPTH) / 8e+9) > Math.pow(2, 18)) {
+          console.log(`GIGABYTES: ${(TESTihdrValuesIni[0] * TESTihdrValuesIni[1] * BYTELENGTH * _BITDEPTH) / 8e+9}`);
+        }
+      }
+    }
   }
+  console.log('')
 
   TESTihdrValues = TESTihdrValuesIni;
   var headerTEST = "89504e470d0a1a0a";
@@ -229,11 +236,11 @@ async function CREATEPNG(
   };
 
   sRGBTEST.CRC = COMPUTECRC(createChunkFromDictionary(sRGBTEST));
-  console.time("IDAT GENERATION", "GENERATING COLORS");
+  console.time("IDAT", "GENERATING COLORS");
 
   possibleColors = generateHexDigitsBitDepth(_BITDEPTH);
   //console.log(possibleColors);
-  console.timeLog("IDAT GENERATION", "GENERATING DATA");
+  console.timeLog("IDAT", "GENERATING DATA");
   console.log(possibleColors);
   //possibleColors = ["aa", "bb", "cc", "dd", "ee", "ff"];
   var TESTidatValuesIni = Buffer.allocUnsafe(0); // Initialize an empty buffer
@@ -252,37 +259,69 @@ async function CREATEPNG(
     var BYTEPAD = "00";
   }
   var IDATENDCHECK = false;
+  var LINEWidth2 = LINEWidth;
+  let divisor = LINEWidth;
+  var divisors = [];
+  while (divisor > 1) {
+    if (LINEWidth * TESTihdrValuesIni[1] % divisor === 0) {
+      divisors.push(divisor);
+    }
+    divisor--;
+  }
+  console.table(divisors);
+  var _LARGESTDIVISOR = divisors[0];
+  //console.log((TESTihdrValuesIni[1] * LINEWidth) / _LARGESTDIVISOR);
+  var chunkfiltext = '';
+  var CURRENTLineBytes = ''; // Initialize CURRENTLineBytes
+  var CURRENTLineBytes2 = ''
   for (let i = 0; i < TESTihdrValuesIni[1] * LINEWidth; i++) {
-    //TimeUpdatesInterval(1000000, "IDAT GENERATION", IDATENDCHECK)
     if (i % LINEWidth === 0) {
-      TESTidatValuesIni = Buffer.concat([
-        TESTidatValuesIni,
-        Buffer.from(BYTEPAD, "hex"),
-      ]);
-      //console.clear()
-      //console.log(`LINE #${CURRENTLine}`)
-      CURRENTLine++;
+      CURRENTLineBytes2 += BYTEPAD
     }
 
     let RANDOMCOLOR =
       possibleColors[Math.floor(Math.random() * possibleColors.length)];
     CURRENTLineBytes += RANDOMCOLOR;
-    if (CURRENTLineBytes.length == LINEWidth) {
+    CURRENTLineBytes2 += RANDOMCOLOR;
+
+    // Check if CURRENTLineBytes length is equal to the largest divisor
+    if (CURRENTLineBytes.length === _LARGESTDIVISOR) {
       try {
         TESTidatValuesIni = Buffer.concat([
           TESTidatValuesIni,
-          Buffer.from(CURRENTLineBytes, "hex"),
+          Buffer.from(CURRENTLineBytes2, "hex"),
         ]);
-        CURRENTLineBytes = "";
+        CURRENTLineBytes = ""; // Clear CURRENTLineBytes
+        CURRENTLineBytes2 = ""
+        if((((TESTihdrValuesIni[1] * LINEWidth) - TESTidatValuesIni.length) / _LARGESTDIVISOR) * 10000 % 1 === 0){
+          console.log(((TESTihdrValuesIni[1] * LINEWidth) - TESTidatValuesIni.length) / _LARGESTDIVISOR)
+          console.timeLog("IDAT")
+        }
       } catch (error) {
         console.error(error);
         break;
       }
     }
+
+    // Check if CURRENTLineBytes length is equal to LINEWidth
+    /*if (CURRENTLineBytes.length == LINEWidth) {
+      try {
+        TESTidatValuesIni = Buffer.concat([
+          TESTidatValuesIni,
+          Buffer.from(CURRENTLineBytes, "hex"),
+        ]);
+        CURRENTLineBytes = ""; // Clear CURRENTLineBytes
+        //console.log((TESTihdrValuesIni[1] * LINEWidth) - TESTidatValuesIni.length);
+      } catch (error) {
+        console.error(error);
+        break;
+      }
+    }*/
   }
+
   IDATENDCHECK = true;
 
-  console.timeLog("IDAT GENERATION", "DATA JOINED");
+  console.timeLog("IDAT", "DATA JOINED");
 
   /*TESTidatValues = [];
     let VALUE = [];
@@ -320,7 +359,7 @@ async function CREATEPNG(
   ]);
 
   //idatTEST.CRC = COMPUTECRC(createChunkFromDictionary(TESTidatValues))
-  console.timeEnd("IDAT GENERATION", "FINISHED");
+  console.timeEnd("IDAT", "FINISHED");
   iendTEST = Buffer.concat([
     Buffer.from("00000000", "hex"),
     Buffer.from("49454e44", "hex"),
@@ -361,4 +400,4 @@ async function CREATEPNG(
   //fs.writeFileSync(`${OUTFILE}.png`, DATA, "binary");
 }
 
-CREATEPNG("OUT", Math.pow(2, 4), Math.pow(2, 4), 8, 2, true);
+CREATEPNG("OUT", Math.pow(2, 14), Math.pow(2, 14), 4, 0, true);
