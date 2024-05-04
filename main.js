@@ -291,9 +291,8 @@ async function CREATEPNG(
         ]);
         CURRENTLineBytes = ""; // Clear CURRENTLineBytes
         CURRENTLineBytes2 = ""
-        if((((TESTihdrValuesIni[1] * LINEWidth) - TESTidatValuesIni.length) / _LARGESTDIVISOR) * 10000 % 1 === 0){
-          console.log(((TESTihdrValuesIni[1] * LINEWidth) - TESTidatValuesIni.length) / _LARGESTDIVISOR)
-          console.timeLog("IDAT")
+        if((Math.round(((TESTidatValuesIni.length / (TESTihdrValuesIni[1] * LINEWidth)) * 100) * 100)) % 1 === 0){
+          console.timeLog("IDAT", `  -   ${Math.fround((TESTidatValuesIni.length / (TESTihdrValuesIni[1] * LINEWidth)) * 100).toFixed(2)}% Done`)
         }
       } catch (error) {
         console.error(error);
